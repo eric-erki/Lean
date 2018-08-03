@@ -18,6 +18,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using QuantConnect.Interfaces;
+using QuantConnect.Logging;
 using QuantConnect.Util;
 
 namespace QuantConnect.Algorithm.Framework.Alphas.Analysis
@@ -219,7 +220,11 @@ namespace QuantConnect.Algorithm.Framework.Alphas.Analysis
                 {
                     context.Score.Finalize(currentTimeUtc);
 
-                    _extensions.ForEach(e => e.OnInsightAnalysisCompleted(context));
+                    _extensions.ForEach(e =>
+                    {
+                        Log.Trace($"InsightManager.UpdateScores.OnInsightAnalysisCompleted(): Invoking {e.GetType().Name}");
+                        e.OnInsightAnalysisCompleted(context);
+                    });
 
                     var id = context.Insight.Id;
                     _closedInsightContexts[id] = context;
