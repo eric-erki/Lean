@@ -136,6 +136,7 @@ namespace QuantConnect.Lean.Engine.Alphas
                 Statistics.RollingAveragedPopulationScore.SetScore(scoreType, newEma, currentTime);
             }
 
+            Log.Trace($"StatisticsInsightManagerExtension.OnInsightAnalysisCompleted(): {Statistics.RollingAveragedPopulationScore.IsFinalScore} | {Statistics.MeanPopulationScore}");
             Log.Trace($"StatisticsInsightManagerExtension.OnInsightAnalysisCompleted(): {context.InsightPeriodClosed} | {context.Insight.Score} | {context.Insight.Score.IsFinalScore}");
         }
 
