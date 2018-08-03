@@ -671,6 +671,10 @@ namespace QuantConnect.Lean.Engine.Results
                 {
                     series.Values.Add(new ChartPoint(time, value));
                 }
+                else
+                {
+                    Log.Trace($"BacktestingResultHandler.Sample(): {chartName}/{series}: Skipping sampling. Last sample: {Time.UnixTimeStampToDateTime(series.Values[series.Values.Count - 1].x)} | This sample: {time}");
+                }
             }
         }
 
