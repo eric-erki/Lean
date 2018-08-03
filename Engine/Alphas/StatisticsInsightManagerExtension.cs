@@ -18,6 +18,7 @@ using System;
 using QuantConnect.Algorithm.Framework.Alphas;
 using QuantConnect.Algorithm.Framework.Alphas.Analysis;
 using QuantConnect.Interfaces;
+using QuantConnect.Logging;
 
 namespace QuantConnect.Lean.Engine.Alphas
 {
@@ -134,6 +135,8 @@ namespace QuantConnect.Lean.Engine.Alphas
                 }
                 Statistics.RollingAveragedPopulationScore.SetScore(scoreType, newEma, currentTime);
             }
+
+            Log.Trace($"StatisticsInsightManagerExtension.OnInsightAnalysisCompleted(): {context.InsightPeriodClosed} | {context.Insight.Score} | {context.Insight.Score.IsFinalScore}");
         }
 
         /// <summary>
