@@ -16,7 +16,9 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using QuantConnect.Algorithm.Framework.Alphas.Analysis;
 using QuantConnect.Algorithm.Framework.Alphas.Serialization;
+using QuantConnect.Securities;
 
 namespace QuantConnect.Algorithm.Framework.Alphas
 {
@@ -250,7 +252,7 @@ namespace QuantConnect.Algorithm.Framework.Alphas
                 CloseTimeUtc = Time.UnixTimeStampToDateTime(serializedInsight.CloseTime),
                 EstimatedValue = serializedInsight.EstimatedValue,
                 ReferenceValue = serializedInsight.ReferenceValue,
-                GroupId = string.IsNullOrEmpty(serializedInsight.GroupId) ? (Guid?) null : Guid.Parse(serializedInsight.GroupId)
+                GroupId = String.IsNullOrEmpty(serializedInsight.GroupId) ? (Guid?) null : Guid.Parse(serializedInsight.GroupId)
             };
 
             // only set score values if non-zero or if they're the final scores
@@ -292,6 +294,47 @@ namespace QuantConnect.Algorithm.Framework.Alphas
             }
 
             return str;
+        }
+
+        /// <summary>
+        /// Sets the generated and close times on the insight.
+        /// </summary>
+        /// <param name="insight">The insight to update</param>
+        /// <param name="generatedTime">The time this insight was generated</param>
+        /// <param name="barSize">Computed bar size used for determining the insight closing time</param>
+        /// <param name="exchangeHours">The exchange hours associated with the insight's symbol</param>
+        /// <returns>The same insight reference, but with updated values</returns>
+        public static Insight SetGeneratedAndClosedTimes(
+            Insight insight,
+            DateTime generatedTime,
+            TimeSpan barSize,
+            SecurityExchangeHours exchangeHours
+            )
+        {
+            // function idempotency
+            if (insight.CloseTimeUtc != default(DateTime))
+            {
+                return insight;
+            }
+
+            insight.GeneratedTimeUtc = generatedTime;
+
+            var localStart = generatedTime.ConvertFromUtc(exchangeHours.TimeZone);
+            barSize = Time.Max(barSize, Time.OneMinute);
+            var barCount = (int) (insight.Period.Ticks / barSize.Ticks);
+
+            if (barCount == 0)
+            {
+                // the prediction is under a minute, so use simple addition ignoring market hours
+                insight.CloseTimeUtc = insight.GeneratedTimeUtc + insight.Period;
+            }
+            else
+            {
+                insight.CloseTimeUtc = Time.GetEndTimeForTradeBars(exchangeHours, localStart, barSize, barCount, false)
+                    .ConvertToUtc(exchangeHours.TimeZone);
+            }
+
+            return insight;
         }
     }
 }

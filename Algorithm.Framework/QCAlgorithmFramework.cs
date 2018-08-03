@@ -303,19 +303,14 @@ namespace QuantConnect.Algorithm.Framework
         protected sealed override void OnInsightsGenerated(IEnumerable<Insight> insights)
         {
             // set generated and close times on the insight object
-            base.OnInsightsGenerated(insights.Select(SetGeneratedAndClosedTimes));
+            base.OnInsightsGenerated(insights.Select(SetValuesNotDefinedByAlgorithm));
         }
 
-        private Insight SetGeneratedAndClosedTimes(Insight insight)
+        private Insight SetValuesNotDefinedByAlgorithm(Insight insight)
         {
-            // function idempotency
-            if (insight.CloseTimeUtc != default(DateTime))
-            {
-                return insight;
-            }
-
-            insight.GeneratedTimeUtc = UtcTime;
+            // set reference value
             insight.ReferenceValue = _securityValuesProvider.GetValues(insight.Symbol).Get(insight.Type);
+
             if (string.IsNullOrEmpty(insight.SourceModel))
             {
                 // set the source model name if not already set
@@ -336,13 +331,7 @@ namespace QuantConnect.Algorithm.Framework
                 exchangeHours = MarketHoursDatabase.GetExchangeHours(insight.Symbol.ID.Market, insight.Symbol, insight.Symbol.SecurityType);
             }
 
-            var localStart = UtcTime.ConvertFromUtc(exchangeHours.TimeZone);
-            barSize = QuantConnect.Time.Max(barSize, QuantConnect.Time.OneMinute);
-            var barCount = (int) (insight.Period.Ticks / barSize.Ticks);
-
-            insight.CloseTimeUtc = QuantConnect.Time.GetEndTimeForTradeBars(exchangeHours, localStart, barSize, barCount, false).ConvertToUtc(exchangeHours.TimeZone);
-
-            return insight;
+            return Insight.SetGeneratedAndClosedTimes(insight, UtcTime, barSize, exchangeHours);
         }
 
         private void CheckModels()
