@@ -137,7 +137,13 @@ namespace QuantConnect.Algorithm.Framework.Portfolio
                 foreach (var symbol in symbols)
                 {
                     var weight = (decimal)W[sidx];
-                    targets.Add(PortfolioTarget.Percent(algorithm, symbol, weight));
+
+                    var target = PortfolioTarget.Percent(algorithm, symbol, weight);
+                    if (target != null)
+                    {
+                        targets.Add(target);
+                    }
+
                     sidx++;
                 }
             }
@@ -207,7 +213,7 @@ namespace QuantConnect.Algorithm.Framework.Portfolio
             //annualized variance of return
             double annualVariance = W.Dot(Σ.Dot(W));
             // the risk aversion coefficient
-            var riskAversion = (annualReturn - _riskFreeRate) / annualVariance;            
+            var riskAversion = (annualReturn - _riskFreeRate) / annualVariance;
             // the implied excess equilibrium return Vector (N x 1 column vector)
             Π = Σ.Dot(W).Multiply(riskAversion);
         }
@@ -264,6 +270,6 @@ namespace QuantConnect.Algorithm.Framework.Portfolio
                 return false;
             }
             return true;
-        }  
+        }
     }
 }
