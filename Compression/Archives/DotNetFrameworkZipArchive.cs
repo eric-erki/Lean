@@ -124,10 +124,6 @@ namespace QuantConnect.Archives
                 using (var entryStream = _entry.Open())
                 {
                     stream.CopyTo(entryStream);
-                    if (entryStream.Position == 0)
-                    {
-
-                    }
                 }
             }
         }
